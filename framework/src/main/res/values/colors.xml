@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#1296db</color>
+    <color name="colorPrimaryDark">#1296db</color>
+    <color name="colorAccent">#1296db</color>
+
+    <color name="color_star_bg">#12121F</color>
+    <color name="chat_bg">#8BC34A</color>
+
+
+</resources>

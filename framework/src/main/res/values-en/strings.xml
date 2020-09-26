@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Framework</string>
+
+    <string name="text_devices_not_supper_audio">The device does not support audio and video calls</string>
+
+    <string name="text_chat_add_friend_channl">add friends</string>
+    <string name="text_chat_argeed_friend_channl">agree friends</string>
+    <string name="text_chat_friend_msg_channl">friend message</string>
+
+    <string name="text_server_status">Server not connected</string>
+
+</resources>

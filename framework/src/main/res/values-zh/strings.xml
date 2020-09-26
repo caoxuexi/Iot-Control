@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Framework</string>
+
+    <string name="text_devices_not_supper_audio">设备不支持音视频通话</string>
+
+    <string name="text_chat_add_friend_channl">添加好友</string>
+    <string name="text_chat_argeed_friend_channl">同意好友</string>
+    <string name="text_chat_friend_msg_channl">好友消息</string>
+
+    <string name="text_server_status">服务器未连接</string>
+
+</resources>

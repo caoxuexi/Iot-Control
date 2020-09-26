@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="textSize">18sp</dimen>
+    <dimen name="titleSize">24sp</dimen>
+</resources>
