@@ -1,5 +1,7 @@
 package cn.caoqiang.framework.utils;
 
+import android.content.Context;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -15,6 +17,7 @@ import java.util.Date;
 import cn.caoqiang.framework.BuildConfig;
 
 public class LogUtils {
+    
     private static SimpleDateFormat mSimpleDateFormat =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -38,14 +41,14 @@ public class LogUtils {
 
     //封装到文件的方法
     public static void writeToFile(String text){
-        //文档路径
-        String fileName="/sdcard/Meet/Meet.log";
+
+        String fileName= Environment.getExternalStorageDirectory().getAbsolutePath()+"/Iot/Iot.log";
         //时间+等级+内存
         String log= mSimpleDateFormat.format(new Date())+" "+text+"\n";
         //检查父路径
-        File fileGroup =new File("/sdcard/Meet");
+        File fileGroup =new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Iot");
         if(!fileGroup.exists()){
-            fileGroup.mkdir();
+            boolean ok=fileGroup.mkdirs();
         }
         //开始写入
         FileOutputStream fileOutputStream=null;

@@ -1,6 +1,9 @@
 package cn.caoqiang.iot;
 
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -8,6 +11,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
@@ -46,9 +50,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView measure_result;
     private FButton speak;
     private TextView voiceResult;
-    final String ledUrl= HttpConst.IOT_SITE+HttpConst.IOT_LED;
-    private VoiceMessageEvent voiceMessageEvent=new VoiceMessageEvent(); //声音请求事件
-    Gson gson=new Gson();//json对象解释器
+    final String ledUrl = HttpConst.IOT_SITE + HttpConst.IOT_LED;
+    private VoiceMessageEvent voiceMessageEvent = new VoiceMessageEvent(); //声音请求事件
+    Gson gson = new Gson();//json对象解释器
     Timer timer = new Timer(); //定时器
 
     @Override
@@ -61,30 +65,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void radioGroupSet() {
-        redChooseGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
+        redChooseGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 int radioButtonId = group.getCheckedRadioButtonId();
-                RadioButton rb = (RadioButton)findViewById(radioButtonId);
+                RadioButton rb = (RadioButton) findViewById(radioButtonId);
                 String radioButtonLabel = rb.getText().toString();
-                if(radioButtonLabel.equals("开")){
-                    ledThread(ledUrl,HttpConst.RED_ON);
-                }else{
-                    ledThread(ledUrl,HttpConst.RED_OFF);
+                if (radioButtonLabel.equals("开")) {
+                    ledThread(ledUrl, HttpConst.RED_ON);
+                } else {
+                    ledThread(ledUrl, HttpConst.RED_OFF);
                 }
             }
         });
 
-        greenChooseGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
+        greenChooseGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 int radioButtonId = group.getCheckedRadioButtonId();
-                RadioButton rb = (RadioButton)findViewById(radioButtonId);
+                RadioButton rb = (RadioButton) findViewById(radioButtonId);
                 String radioButtonLabel = rb.getText().toString();
-                if(radioButtonLabel.equals("开")){
-                    ledThread(ledUrl,HttpConst.GREEN_ON);
-                }else{
-                    ledThread(ledUrl,HttpConst.GREEN_OFF);
+                if (radioButtonLabel.equals("开")) {
+                    ledThread(ledUrl, HttpConst.GREEN_ON);
+                } else {
+                    ledThread(ledUrl, HttpConst.GREEN_OFF);
                 }
             }
         });
@@ -93,18 +97,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onVoiceMessageEvent(VoiceMessageEvent voiceMessageEvent) {
         int lineCount = voiceResult.getLineCount();
-        if(lineCount>=10){
+        if (lineCount >= 10) {
             voiceResult.setText("");
             voiceResult.append(voiceMessageEvent.getResult());
-        }else{
+        } else {
             voiceResult.append(voiceMessageEvent.getResult());
         }
         /* Do something */
-    };
+    }
+
+    ;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onDTHMessageEvent(DHTMessageEvent dHTMessageEvent) {
-        DHTBean dhtBean=dHTMessageEvent.getDhtBean();
+        DHTBean dhtBean = dHTMessageEvent.getDhtBean();
         measure_result.setText("");
         measure_result.append("温度：");
         measure_result.append(dhtBean.getTemperature().toString());
@@ -112,74 +118,85 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         measure_result.append("湿度：");
         measure_result.append(dhtBean.getHumidity().toString());
         measure_result.append("%");
-    };
+    }
 
+    ;
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.measure:
-                if(measure.getText().equals("开始检测")){
-                    TimerTask timerTask=new TimerTask() {
+                if (measure.getText().equals("开始检测")) {
+                    TimerTask timerTask = new TimerTask() {
                         @Override
                         public void run() {
-                            dHTThread(HttpConst.IOT_SITE+HttpConst.IOT_DHT);
+                            dHTThread(HttpConst.IOT_SITE + HttpConst.IOT_DHT);
                         }
                     };
-                    timer.schedule(timerTask,0,2000); //两秒检测一次
+                    timer.schedule(timerTask, 0, 2000); //两秒检测一次
                     measure.setText("停止检测");
-                }else{
+                } else {
                     timer.cancel(); //关闭定时器
                     measure.setText("开始检测");
-                    timer=new Timer();
+                    timer = new Timer();
                 }
 
                 break;
             case R.id.speak:
-                VoiceManager.getInstance(this).startSpeak(new RecognizerDialogListener() {
-                    @Override
-                    public void onResult(RecognizerResult recognizerResult, boolean b) {
-                        String result = recognizerResult.getResultString();
-                        if (!TextUtils.isEmpty(result)) {
-                            LogUtils.i("result:" + result);
-                            VoiceBean voiceBean = new Gson().fromJson(result, VoiceBean.class);
-                            if (voiceBean.isLs()) {
-                                StringBuffer sb = new StringBuffer();
-                                for (int i = 0; i < voiceBean.getWs().size(); i++) {
-                                    VoiceBean.WsBean wsBean = voiceBean.getWs().get(i);
-                                    String sResult = wsBean.getCw().get(0).getW();
-                                    sb.append(sResult);
+                if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED ||
+                   checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    break;
+                } else {
+                    VoiceManager.getInstance(this).startSpeak(new RecognizerDialogListener() {
+                        @Override
+                        public void onResult(RecognizerResult recognizerResult, boolean b) {
+                            String result = recognizerResult.getResultString();
+                            if (!TextUtils.isEmpty(result)) {
+                                LogUtils.i("result:" + result);
+                                VoiceBean voiceBean = new Gson().fromJson(result, VoiceBean.class);
+                                if (voiceBean.isLs()) {
+                                    StringBuffer sb = new StringBuffer();
+                                    for (int i = 0; i < voiceBean.getWs().size(); i++) {
+                                        VoiceBean.WsBean wsBean = voiceBean.getWs().get(i);
+                                        String sResult = wsBean.getCw().get(0).getW();
+                                        sb.append(sResult);
+                                    }
+                                    LogUtils.i("result:" + sb.toString());
+                                    judgeAndLed(sb.toString());
+                                    System.out.println(sb.toString());
                                 }
-                                LogUtils.i("result:" + sb.toString());
-                                judgeAndLed(sb.toString());
-                                System.out.println(sb.toString());
                             }
                         }
-                    }
 
-                    @Override
-                    public void onError(SpeechError speechError) {
-                        LogUtils.e("speechError:" + speechError.toString());
-                    }
-                });
+                        @Override
+                        public void onError(SpeechError speechError) {
+                            LogUtils.e("speechError:" + speechError.toString());
+                        }
+                    });
+                }
                 break;
         }
     }
 
     private void judgeAndLed(String voiceResult) {
-        System.out.println("judgeAndLed:"+voiceResult);
-        if(voiceResult.equals("打开红灯。")){
-            ledThread(ledUrl,HttpConst.RED_ON);
+        System.out.println("judgeAndLed:" + voiceResult);
+        if (voiceResult.equals("打开红灯。")) {
+            ledThread(ledUrl, HttpConst.RED_ON);
             voiceMessageEvent.setResult("识别成功:打开红灯\n");
             EventBus.getDefault().post(voiceMessageEvent);
-        }else if(voiceResult.equals("关闭红灯。")){
-            ledThread(ledUrl,HttpConst.RED_OFF);
+        } else if (voiceResult.equals("关闭红灯。")) {
+            ledThread(ledUrl, HttpConst.RED_OFF);
             voiceMessageEvent.setResult("识别成功:关闭红灯\n");
             EventBus.getDefault().post(voiceMessageEvent);
-        }else if(voiceResult.equals("打开绿灯。")){
-            ledThread(ledUrl,HttpConst.GREEN_ON);
+        } else if (voiceResult.equals("打开绿灯。")) {
+            ledThread(ledUrl, HttpConst.GREEN_ON);
             voiceMessageEvent.setResult("识别成功:打开绿灯\n");
             EventBus.getDefault().post(voiceMessageEvent);
-        }else if(voiceResult.equals("关闭绿灯。")) {
+        } else if (voiceResult.equals("关闭绿灯。")) {
             ledThread(ledUrl, HttpConst.GREEN_OFF);
             voiceMessageEvent.setResult("识别成功:关闭绿灯\n");
             EventBus.getDefault().post(voiceMessageEvent);
@@ -199,19 +216,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         speak.setOnClickListener(this);
         voiceResult = (TextView) findViewById(R.id.voiceResult);
         voiceResult.setOnClickListener(this);
-        okHttpClient=new OkHttpClient();
+        okHttpClient = new OkHttpClient();
     }
 
     public String post(String url, String param) throws IOException {
         Request request;
-        if(param!=null){
+        if (param != null) {
             String[] split = param.split("=");
-            FormBody formBody = new FormBody.Builder().add(split[0],split[1]).build();
+            FormBody formBody = new FormBody.Builder().add(split[0], split[1]).build();
             request = new Request.Builder()
                     .url(url)
                     .post(formBody)
                     .build();
-        } else{
+        } else {
             request = new Request.Builder()
                     .url(url)
                     .build();
@@ -230,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return response.body().string();
     }
 
-    public void ledThread(final String url,final String param){
+    public void ledThread(final String url, final String param) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -243,15 +260,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
-    public void dHTThread(final String url){
+    public void dHTThread(final String url) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     String DHTResult = get(url);
-                    if(DHTResult.contains("temperature")){
+                    if (DHTResult.contains("temperature")) {
                         DHTBean dhtBean = gson.fromJson(DHTResult, DHTBean.class);
-                        DHTMessageEvent dhtMessageEvent=new DHTMessageEvent();
+                        DHTMessageEvent dhtMessageEvent = new DHTMessageEvent();
                         dhtMessageEvent.setDhtBean(dhtBean);
                         EventBus.getDefault().post(dhtMessageEvent);
                     }
