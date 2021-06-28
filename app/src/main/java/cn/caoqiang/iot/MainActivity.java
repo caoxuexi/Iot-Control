@@ -2,7 +2,10 @@ package cn.caoqiang.iot;
 
 
 import android.Manifest;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -12,6 +15,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private VoiceMessageEvent voiceMessageEvent = new VoiceMessageEvent(); //声音请求事件
     Gson gson = new Gson();//json对象解释器
     Timer timer = new Timer(); //定时器
+    private boolean hasrefuse; //判断权限是否之前被拒绝过
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,8 +152,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED ||
                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 ) {
-                    requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    hasrefuse = shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO);
+                    hasrefuse = shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                    if(hasrefuse) {
+                        //当拒绝了授权后，为提升用户体验，可以以弹窗的方式引导用户到设置中去进行设置
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setMessage("需要开启权限才能使用此功能")
+                                .setPositiveButton("设置", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //引导用户到设置中去进行设置
+                                        Intent intent = new Intent();
+                                        intent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+                                        intent.setData(Uri.fromParts("package", getPackageName(), null));
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                })
+                                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                    }
+                                })
+                                .create()
+                                .show();
+                    }else{
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    }
                     break;
                 } else {
                     VoiceManager.getInstance(this).startSpeak(new RecognizerDialogListener() {
