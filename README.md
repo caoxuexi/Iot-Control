@@ -1,4 +1,4 @@
-# Iot-Control
+# Iot-Control 温州大学Android实践课
 简易LED灯控制（POST+GET+讯飞语音识别） 
 2020年9月26日安卓实践制作
 2021年7月3日适配高版本的SDK
