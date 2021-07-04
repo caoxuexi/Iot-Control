@@ -5,5 +5,5 @@
 
 实现功能： 1.通过POST请求控制LED灯亮灭 2.通过GET请求获取DS18B20的湿度和温度 3.调用讯飞语音识别实现简易语音识别，并根据识别结果控制LED灯亮灭
 
-![](E:\JetBrains\AndroidProjects\IotApplication\assets\application.png)
+![](assets\application.png)
 
